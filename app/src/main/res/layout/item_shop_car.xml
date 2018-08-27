@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.autolayout.AutoLinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+
+    
+    <com.zhy.autolayout.AutoLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingRight="60px"
+        android:paddingLeft="60px"
+        android:paddingTop="40px"
+        android:paddingBottom="40px">
+
+        <ImageView
+            android:id="@+id/iv_item_shop_car_sel"
+            android:layout_width="100px"
+            android:layout_height="100px"
+            android:clickable="true"
+            android:visibility="visible"
+            android:src="@drawable/select_grey"
+            />
+
+        <ImageView
+            android:layout_marginLeft="20px"
+            android:id="@+id/iv_item_shop_car_goodsimg"
+            android:layout_width="500px"
+            android:layout_height="500px"
+            android:visibility="visible"
+            />
+
+        <com.zhy.autolayout.AutoLinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="20px"
+            android:layout_weight="1"
+            android:visibility="visible"
+            android:orientation="horizontal">
+
+            <com.zhy.autolayout.AutoLinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:orientation="vertical">
+
+
+            <TextView
+                android:id="@+id/tv_item_shop_car_goodname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="60px"
+                android:maxLines="3"
+                android:ellipsize="end"
+                android:textColor="@color/color_black"/>
+
+            <TextView
+                android:layout_marginTop="20px"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="60px"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textColor="@color/color_grey"/>
+
+            <TextView
+                android:id="@+id/tv_item_shop_car_tickets"
+                android:layout_marginTop="20px"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="70px"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/color_red"/>
+
+            </com.zhy.autolayout.AutoLinearLayout>
+        </com.zhy.autolayout.AutoLinearLayout>
+
+        <com.zhy.autolayout.AutoLinearLayout
+            android:layout_width="300px"
+            android:layout_height="100px"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_item_shop_car_reductnum"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="60px"
+            android:textColor="@color/color_black"
+            android:gravity="center"
+            android:background="#DDDDDD"
+            android:text="-"/>
+            
+            <View
+                android:layout_width="1px"
+                android:layout_height="match_parent"
+                android:background="@color/color_grey"/>
+
+            <TextView
+                android:id="@+id/tv_item_shop_car_num"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="60px"
+                android:text="99"
+                android:gravity="center"
+                android:textColor="@color/color_black"
+                android:background="@color/coloer_wither"/>
+
+            <View
+                android:layout_width="1px"
+                android:layout_height="match_parent"
+                android:background="@color/color_grey"/>
+
+            <Button
+                android:id="@+id/btn_item_shop_car_addnum"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="60px"
+                android:textColor="@color/color_black"
+                android:gravity="center"
+                android:background="#DDDDDD"
+                android:text="+"/>
+        </com.zhy.autolayout.AutoLinearLayout>
+
+
+    </com.zhy.autolayout.AutoLinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/color_grey"/>
+
+    <com.zhy.autolayout.AutoRelativeLayout
+        android:layout_width="match_parent"
+        android:paddingRight="60px"
+        android:layout_height="160px">
+
+        <TextView
+            android:id="@+id/tv_item_shop_car_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="60px"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:maxLines="1"
+            android:text="小计:彩票"
+            android:ellipsize="end"
+            android:textColor="@color/color_red"/>
+
+
+    </com.zhy.autolayout.AutoRelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/color_grey"/>
+
+</com.zhy.autolayout.AutoLinearLayout>
