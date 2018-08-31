@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -39,6 +43,7 @@ import com.qy.zgz.mall.R;
 import com.qy.zgz.mall.adapter.CoinTypeAdapter;
 import com.qy.zgz.mall.adapter.ConsumptionListAdapter;
 import com.qy.zgz.mall.adapter.PackageListAdapter;
+import com.qy.zgz.mall.dialogfragments.LoginDialogFragment;
 import com.qy.zgz.mall.entities.CoinInfo;
 import com.qy.zgz.mall.entities.GMSinfo;
 import com.qy.zgz.mall.lcb_game.NumDanceActivity;
@@ -46,7 +51,10 @@ import com.qy.zgz.mall.network.Constance;
 import com.qy.zgz.mall.network.NetworkCallback;
 import com.qy.zgz.mall.network.NetworkRequest;
 import com.qy.zgz.mall.network.XutilsCallback;
+import com.qy.zgz.mall.page.fragment.ManagerSystemFragment;
+import com.qy.zgz.mall.page.fragment.PurchaseCoinFragment;
 import com.qy.zgz.mall.page.index_function.CustomerServiceDialog;
+import com.qy.zgz.mall.page.money_purchase.error_handle.ErrorHandleActivity;
 import com.qy.zgz.mall.page.money_purchase.purchase_record.PurchaseRecordAdapter;
 import com.qy.zgz.mall.slot_machines.game.SlotMachinesActivity;
 import com.qy.zgz.mall.utils.FileManager;
@@ -82,15 +90,13 @@ import butterknife.OnClick;
 /**
  *
  */
-public class PurchaseCoinActivity extends BaseActivity implements SerialPortListener {
+public class PurchaseCoinActivity extends BaseActivity {
     public static final String TAG = "PurchaseCoinActivity";
     @BindView(R.id.ban_main_banner)
     Banner mBanner;
 
     @BindView(R.id.iv_wx_qrcode)
     ImageView mIvWxQRCode;
-    @BindView(R.id.rv_coin_type)
-    RecyclerView mRvCoinList;
     //    @BindView(R.id.sdv_setting)
 //    SimpleDraweeView mSdvSetting;
     @BindView(R.id.rl_purchase_coin)
@@ -150,21 +156,24 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
     Button mBtnCancel;
     @BindView(R.id.btn_pwdupdate_confirm)
     Button mBtnConfirm;
-    @BindView(R.id.tv_fg_buy_coins_notaocan_tis)
-    TextView mTvNoPackageTip;
-    @BindView(R.id.iv_setting)
+    @BindView(R.id.iv_high_setting)
     ImageView mIvSetting;
     @BindView(R.id.tv_shop_name)
     TextView mTvShopName;
     @BindView(R.id.iv_shopping_cart)
     ImageView mIvShoppingCart;
 
+    //经理卡
+    @BindView(R.id.fl_fragment_container)
+    FrameLayout mflContaner;
+    @BindView(R.id.ll_right_layout)
+    AutoLinearLayout mllRightLayout;
+    @BindView(R.id.iv_manager_setting)
+    ImageView mIvManagerSetting;
 
     private String mCinemaType;
     private String mCinemaid;
     private Cranemaapi mCranemaApi;
-    private PackageListAdapter mAdapter;
-    private List<BuyCoins> mCoinListData = new ArrayList<>();
     private ShoppingTimeCount mTimeCount;
     //检查微信登录handle
     private Handler wx_handle = new Handler();
@@ -173,15 +182,8 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
     ConsumptionListAdapter mConSumptionListAdapter;
     List<PurchaseRecord> mConsumptionRecordList;
 
+    private LoginDialogFragment mDialog;
     private String mConsumptionData = null;
-
-    //判断是否可以收现金
-    private boolean mCanReceiveMoney = false;
-    //是否成功打开串口
-    public boolean mIsSuccessOpenSerial = false;
-    private List<BuyCoins> lastCashBuyCoins = new ArrayList<BuyCoins>(); //（现金购买时）需要更新的套餐信息
-
-    private boolean isShowAutoBuy = false;//是否显示自由购买 ,1--显示，0--不显示
 
     @Override
     public void createView() {
@@ -214,8 +216,7 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
                 return false;
             }
         });
-//        initCoinList();
-//        initConsumptionRecordList();
+
 
         if (TextUtils.isEmpty(SharePerferenceUtil.getInstance()
                 .getValue(Constance.member_Info, "").toString())) {
@@ -223,7 +224,8 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
         } else {
             LocalDefines.sIsLogin = true;
         }
-        getPackageList();
+
+        replaceFragment(PurchaseCoinFragment.newInstance());
         viewLongClickListener();
     }
 
@@ -231,9 +233,6 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
     protected void onResume() {
         super.onResume();
         showLoginInfo();
-        kd.sp().go(this);
-        UpdateServerByLocalData();
-        getGMSSettingsInfoList();
     }
 
     @Override
@@ -260,103 +259,6 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
         }
 
         super.onUserInteraction();
-    }
-
-    private void initCoinList() {
-        //测试用
-//        List<CoinInfo> list = new ArrayList<CoinInfo>();
-//        CoinInfo info = new CoinInfo();
-//        info.setPrice(-1);
-//        list.add(info);
-//
-//        info = new CoinInfo();
-//        info.setPrice(10);
-//        list.add(info);
-//
-//        info = new CoinInfo();
-//        info.setPrice(20);
-//        list.add(info);
-//
-//        info = new CoinInfo();
-//        info.setPrice(50);
-//        list.add(info);
-//
-//        info = new CoinInfo();
-//        info.setPrice(100);
-//        list.add(info);
-//
-//        info = new CoinInfo();
-//        info.setPrice(150);
-//        list.add(info);
-//
-//        info = new CoinInfo();
-//        info.setPrice(5);
-//        list.add(info);
-//
-//        info = new CoinInfo();
-//        info.setPrice(10);
-//        list.add(info);
-
-        GridLayoutManager manager = new GridLayoutManager(this, 3);
-        mRvCoinList.setLayoutManager(manager);
-//        mAdapter = new CoinTypeAdapter(this, mCoinListData, list);
-        mAdapter = new PackageListAdapter(this, mCoinListData);
-        mAdapter.OnClickListener(new PackageListAdapter.OnClickListener() {
-            @Override
-            public void OnClickListener(int position) {
-//                ToastUtil.showToast(PurchaseCoinActivity.this, mCoinListData.get(position).getPrice() + "元");
-                String typeid = SharePerferenceUtil.getInstance().getValue("typeId", "").toString();
-                //欢乐熊版本
-                if (typeid == "25" && !LocalDefines.sIsLogin) {
-                    TisDialog dialog = new TisDialog(PurchaseCoinActivity.this).create().setMessage("请先登录!").show();
-                    return;
-                }
-
-                boolean isSuccessOutCoin = kd.sp().getIsSuccessOutCoin();
-                if (isSuccessOutCoin) {
-                    TisDialog dialog = new TisDialog(PurchaseCoinActivity.this).create().setMessage("设备没币,请移步到其他机器!!").show();
-                    return;
-                }
-
-                if (mIsSuccessOpenSerial) {
-                    kd.sp().bdCoinOuted();
-                    kd.sp().bdCleanError();
-                    if (LocalDefines.sIsLogin && mCoinListData.get(position).getIsMember()) {
-                        new TisDialog(PurchaseCoinActivity.this).create().setMessage("需要会员才能购买!").show();
-                    }
-
-                    switch (mCoinListData.get(position).getId()) {
-                        case "-1":
-                            new TisEditDialog(PurchaseCoinActivity.this).create().setEditType(InputType.TYPE_CLASS_NUMBER)
-                                    .setMessage("请输入购买金额")
-                                    .setNegativeButton(new TisEditDialog.NegativeButtonListener() {
-                                        @Override
-                                        public void onClick(View v) {
-
-                                        }
-                                    }).setPositiveButton(new TisEditDialog.PositiveButtonListener() {
-                                @Override
-                                public void onClick(View v, String input) {
-                                    if (input != null && Integer.valueOf(input) > 0) {
-                                        autoMathPackageListNoType(input);
-                                    } else {
-                                        new TisDialog(PurchaseCoinActivity.this).create().setMessage("金额不能为0或者空")
-                                                .show();
-                                    }
-                                }
-                            });
-                            break;
-                        default:
-                            getPackageInfo(mCoinListData.get(position).getId(), position);
-                            break;
-
-                    }
-                } else {
-                    new TisDialog(PurchaseCoinActivity.this).create().setMessage("设备故障,请联系管理员!").show();
-                }
-            }
-        });
-        mRvCoinList.setAdapter(mAdapter);
     }
 
     private void initConsumptionRecordList() {
@@ -488,17 +390,28 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
             R.id.rl_modify_password, R.id.btn_logout, R.id.iv_new_game, R.id.iv_vip_center,
             R.id.iv_purchase_coin, R.id.iv_exchange_mall, R.id.iv_lucky_lottery,
             R.id.sdv_customor_enquiry, R.id.btn_pwdupdate_cancel, R.id.btn_pwdupdate_confirm,
-            R.id.iv_logout, R.id.tv_main_page})
+            R.id.iv_logout, R.id.tv_main_page, R.id.iv_high_setting, R.id.iv_manager_setting})
     public void onClick(View view) {
         Intent intent = new Intent();
         switch (view.getId()) {
             case R.id.rl_purchase_coin:
-                showPurchaseCoinLayout();
-                getPackageList();
+//                showPurchaseCoinLayout();
+                replaceFragment(PurchaseCoinFragment.newInstance());
                 break;
             case R.id.rl_exchange_coin:
-                showExchangeCoinLayout();
-                getPackageList();
+                if(LocalDefines.sIsLogin) {
+                    replaceFragment(PurchaseCoinFragment.newInstance());
+                }else {
+                    mDialog = LoginDialogFragment.newInstance();
+//                    mDialog.setLoginDialogListener(new LoginDialogFragment.LoginDialogListener() {
+//                        @Override
+//                        public void onClickListener() {
+//                            Log.i(TAG,"Dialog onClickListener");
+//                            CreateScanCode(SharePerferenceUtil.getInstance().getValue(Constance.MachineID, "").toString());
+//                        }
+//                    });
+                    mDialog.show(getSupportFragmentManager(), LoginDialogFragment.class.getSimpleName());
+                }
                 break;
             case R.id.rl_consumption_records:
                 showConsumptionLayout();
@@ -550,22 +463,43 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
                 intent.setClass(PurchaseCoinActivity.this, HomePageActivity.class);
                 startActivity(intent);
                 break;
+            case R.id.iv_high_setting:
+                break;
+            case R.id.iv_manager_setting:
+                //测试
+//                replaceFragment(ManagerSystemFragment.newInstance());
+                if(LocalDefines.sIsLogin) {
+                    MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
+                    if(memberInfo != null && memberInfo.getLevelID() == Constance.machineMangerLevel) {
+                        TisEditDialog dialog = new TisEditDialog(this).create().setMessage("请输入密码")
+                                .setNegativeButton(null)
+                                .setPositiveButton(new TisEditDialog.PositiveButtonListener() {
+                                    @Override
+                                    public void onClick(View v, String input) {
+                                        if(input.equals("")) {
+                                            new TisDialog(PurchaseCoinActivity.this).create().setMessage("密码不能为空").show();
+                                            return;
+                                        }
+                                        checkMemberPwd(memberInfo.getId(), input);
+                                    }
+                                }).show();
+                    }else {
+                        ToastUtil.showToast(this,"非经理卡禁用此功能");
+                    }
+                }else {
+                    ToastUtil.showToast(this,"请登录");
+                }
+                break;
             default:
                 break;
         }
     }
 
-    private void showPurchaseCoinLayout() {
-        mTvPurchaseTitle.setText("选择套餐");
-        mRvCoinList.setVisibility(View.VISIBLE);
-        mLlConsumptionRecordLayout.setVisibility(View.GONE);
-        mLlModifyPwd.setVisibility(View.GONE);
-    }
 
     private void showConsumptionLayout() {
         if (LocalDefines.sIsLogin) {
+            mflContaner.setVisibility(View.GONE);
             mTvPurchaseTitle.setText("消费记录查询（一个月内）");
-            mRvCoinList.setVisibility(View.GONE);
             mLlConsumptionRecordLayout.setVisibility(View.VISIBLE);
             getConsumptionRecord();
         } else {
@@ -574,16 +508,16 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
     }
 
     private void showExchangeCoinLayout() {
+        mflContaner.setVisibility(View.GONE);
         mTvPurchaseTitle.setText("提取游戏币");
-        mRvCoinList.setVisibility(View.VISIBLE);
         mLlConsumptionRecordLayout.setVisibility(View.GONE);
         mLlModifyPwd.setVisibility(View.GONE);
     }
 
     private void showModifyPwdLayout() {
         if (LocalDefines.sIsLogin) {
+            mflContaner.setVisibility(View.GONE);
             mTvPurchaseTitle.setText("修改密码");
-            mRvCoinList.setVisibility(View.GONE);
             mLlConsumptionRecordLayout.setVisibility(View.GONE);
             mLlModifyPwd.setVisibility(View.VISIBLE);
         } else {
@@ -605,18 +539,14 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
             PurchaseCoinActivity purchaseCoinActivity = mWeakReference.get();
             if (purchaseCoinActivity != null) {
                 purchaseCoinActivity.mTvPurchaseTitle.setText("选择套餐");
-                purchaseCoinActivity.mRvCoinList.setVisibility(View.VISIBLE);
                 purchaseCoinActivity.mLlConsumptionRecordLayout.setVisibility(View.GONE);
                 purchaseCoinActivity.mTvTimerCount.setText("倒计时：00:00");
                 //清除会员登录信息
-                SharePerferenceUtil.getInstance()
-                        .setValue(Constance.member_Info, "");
+                SharePerferenceUtil.getInstance().setValue(Constance.member_Info, "");
                 //清除商城会员登录accessToken
-                SharePerferenceUtil.getInstance()
-                        .setValue(Constance.user_accessToken, "");
+                SharePerferenceUtil.getInstance().setValue(Constance.user_accessToken, "");
                 //清除商城会员登录shop_id
-                SharePerferenceUtil.getInstance()
-                        .setValue(Constance.shop_id, "");
+                SharePerferenceUtil.getInstance().setValue(Constance.shop_id, "");
                 //重新初始化
                 purchaseCoinActivity.onResume();
             }
@@ -748,8 +678,7 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
         map.put("deviceid", MacineId);
         map.put("branch_name", Bname);
 
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance()
-                .getValue(Constance.member_Info, "").toString(), MemberInfo.class);
+        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
 
         if (null != memberInfo) {
             map.put("cust_id", memberInfo.getId());
@@ -776,7 +705,7 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
     }
 
     //显示或隐藏登录(登录了机台信息)
-    private void showLoginInfo() {
+    public void showLoginInfo() {
         if (TextUtils.isEmpty(SharePerferenceUtil.getInstance()
                 .getValue(Constance.member_Info, "").toString())) {
             LocalDefines.sIsLogin = false;
@@ -798,12 +727,14 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
                     //开启登录识别扫描器
                     startLoginRecognitionScan();
                     //创建新的微信授权二维码
-                    CreateScanCode(SharePerferenceUtil.getInstance()
-                            .getValue(Constance.MachineID, "").toString());
+                    CreateScanCode(SharePerferenceUtil.getInstance().getValue(Constance.MachineID, "").toString());
                 }
             }, 500);
         } else {
             LocalDefines.sIsLogin = true;
+            if(mDialog != null) {
+                mDialog.dismiss();
+            }
             mTimeCount.cancel();
             mTimeCount.start();
             //初始化登录信息
@@ -1089,49 +1020,25 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
         mEtOldPwd.setText("");
     }
 
-    private String StockBillID = "";
+    private void checkMemberPwd(String custID, String pwd) {
+        HashMap<String,String> hashMap = new HashMap<>();
+        hashMap.put("CustID",custID);
+        hashMap.put("PassWord",pwd);
+        hashMap.put("sign",SignParamUtil.getSignStr(hashMap));
 
-    /**
-     * 本地出币记录更新数据库记录
-     */
-    private void UpdateServerByLocalData() {
-        List<DBOutCoinRecord> outCoinRecordList = DBDao.getInstance().queryErrorBill();
-        if (outCoinRecordList == null || outCoinRecordList.isEmpty()) {
-            return;
-        }
-        ArrayList<HashMap<String, Object>> outList = new ArrayList<HashMap<String, Object>>();
-        for (DBOutCoinRecord dbOutCoinRecord : outCoinRecordList) {
-            HashMap<String, Object> outHashmap = new HashMap<String, Object>();
-            outHashmap.put("StockBillID", dbOutCoinRecord.getStockBillID());
-            outHashmap.put("OutCoins", dbOutCoinRecord.getOutcount());
-            outList.add(outHashmap);
-        }
-
-        HashMap<String, String> hashmap = new HashMap<String, String>();
-
-        hashmap.put("MachineID", SharePerferenceUtil.getInstance().getValue(Constance.MachineID, "").toString());
-        hashmap.put("LocalData", GsonUtil.Companion.objectToJson(outList));
-        hashmap.put("sign", SignParamUtil.getSignStr(hashmap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.UpdateServerByLocalData, hashmap, new XutilsCallback<String>() {
+        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.CheckCustomerPassword, hashMap, new XutilsCallback<String>() {
             @Override
             public void onSuccessData(String result) {
-                Log.i(TAG, "UpdateServerByLocalData result = " + result);
                 JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    //修改本地出币数据状态
-                    ArrayList<String> stockBillIDList = new ArrayList<>();
-                    for (HashMap<String, Object> hashmap : outList) {
-                        stockBillIDList.add(hashmap.get("StockBillID").toString());
-                    }
-
-                    DBDao.getInstance().updateStateOutCoinsRecord(stockBillIDList);
+                if (jsonObject.has("return_Code")&& jsonObject.get("return_Code").equals("200")) {
+//                    startActivity(new Intent(PurchaseCoinActivity.this, ErrorHandleActivity.class));
+                    replaceFragment(ManagerSystemFragment.newInstance());
                 }
             }
 
             @Override
             public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "UpdateServerByLocalData onCancelled = " + cex);
+
             }
 
             @Override
@@ -1146,666 +1053,12 @@ public class PurchaseCoinActivity extends BaseActivity implements SerialPortList
         });
     }
 
-    /**
-     * 存入本地数据库（现金数据）
-     */
-    private int saveLocalCashRecord(double money, int localId) {
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        DBReceiveMoneyRecord moneyRecord = new DBReceiveMoneyRecord();
-        moneyRecord.setId(localId);
-        moneyRecord.setMoney(money);
-        moneyRecord.setIsError(1);
-        moneyRecord.setClassId(SharePerferenceUtil.getInstance().getValue(Constance.MachineClassID, "").toString());
-        moneyRecord.setClassTime(SharePerferenceUtil.getInstance().getValue(Constance.MachineClassTime, "").toString());
-        if (memberInfo != null) {
-            moneyRecord.setCustID(memberInfo.getId());
-            moneyRecord.setCustName(memberInfo.getCustName());
-        } else {
-            moneyRecord.setCustID(Constance.machineFLTUserID);
-            moneyRecord.setCustName("大众会员");
-        }
-        return DBDao.getInstance().saveOrUpdateCashRecord(moneyRecord);
-    }
-
-    /**
-     * 获取一体机参数
-     */
-    private void getGMSSettingsInfoList() {
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("sign", SignParamUtil.getSignStr(hashMap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.GetGMSSettingsInfoList, hashMap, new XutilsCallback<String>() {
-            @Override
-            public void onSuccessData(String result) {
-                Log.i(TAG, "getGMSSettingsInfoList result = " + result);
-                JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    Log.i(TAG, "getGMSSettingsInfoList onSuccess = ");
-                    String data = jsonObject.get("Data").getAsJsonArray().toString();
-                    Log.i(TAG, "getGMSSettingsInfoList data = " + data);
-                    List<GMSinfo> gmSinfos = GsonUtil.Companion.jsonToList(data, GMSinfo.class);
-                    Log.i(TAG, "getGMSSettingsInfoList gmSinfos size = " + gmSinfos.size());
-                    for (GMSinfo gmSinfo : gmSinfos) {
-                        if (gmSinfo.getSettingKey().equals("GMSGetCoinLimit")) {
-                            if (TextUtils.isEmpty(gmSinfo.getValue())) {
-                                Constance.maxOutCoinValue = 200;
-                            } else {
-                                Constance.maxOutCoinValue = Integer.valueOf(gmSinfo.getValue());
-                            }
-                        }
-
-                        if (gmSinfo.getSettingKey().equals("GMSAutoSale")) {
-                            if (TextUtils.isEmpty(gmSinfo.getValue())) {
-                                isShowAutoBuy = false;
-                            } else {
-                                if (gmSinfo.getValue().equals("1")) {
-                                    isShowAutoBuy = true;
-                                } else {
-                                    isShowAutoBuy = false;
-                                }
-                            }
-                        }
-
-                    }
-                } else {
-                    Constance.maxOutCoinValue = 200;
-                }
-            }
-
-            @Override
-            public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "getGMSSettingsInfoList onCancelled = " + cex);
-            }
-
-            @Override
-            public void onError(Throwable ex, boolean isOnCallback) {
-
-            }
-
-            @Override
-            public void onFinished() {
-
-            }
-        });
-    }
-
-    /**
-     * 存入本地数据库（出币数据）
-     */
-    private void saveLocalOutCoinRecord(int count) {
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        //存入本地数据库
-        DBOutCoinRecord outcointRecord = new DBOutCoinRecord();
-        outcointRecord.setOutcount(count);
-        outcointRecord.setIsError(1);
-        outcointRecord.setStockBillID(StockBillID);
-        if (memberInfo != null) {
-            outcointRecord.setCustID(memberInfo.getId());
-            outcointRecord.setCustName(memberInfo.getCustName());
-        } else {
-            outcointRecord.setCustID(Constance.machineFLTUserID);
-            outcointRecord.setCustName("大众会员");
-        }
-        outcointRecord.setClassId(SharePerferenceUtil.getInstance().getValue(Constance.MachineClassID, "").toString());
-        outcointRecord.setClassTime(SharePerferenceUtil.getInstance().getValue(Constance.MachineClassTime, "").toString());
-        DBDao.getInstance().saveOutCoinsRecord(outcointRecord);
-    }
-
-    /**
-     * SerialPortListener 接口方法
-     *
-     * @param count
-     */
-    @Override
-    public void onCoinOuting(int count) {
-        //存入本地数据
-        saveLocalOutCoinRecord(count);
-        if (mDialogOutCoins != null) {
-            mDialogOutCoins.dismiss();
-        }
-    }
-
-    @Override
-    public void onCoinOutSuccess(int count) {
-        //存入本地数据
-        saveLocalOutCoinRecord(count);
-        if (mDialogOutCoins != null) {
-            mDialogOutCoins.showContiune(View.GONE);
-        }
-        takeUpdateOutCoinLog(count);
-        closeOutCoinDialog();
-    }
-
-    @Override
-    public void onCoinOutFail(int outCount, int count, String errorCode) {
-        if (count >= 0) {
-            //存入本地数据
-            saveLocalOutCoinRecord(count);
-            takeFailUpdateOutCoinLog(outCount);
-            if (mDialogOutCoins != null) {
-                mDialogOutCoins.showContiune(View.GONE);
-                mDialogOutCoins.showBug(View.VISIBLE);
-            }
-        }
-    }
-
-    @Override
-    public void onReceivedMomey(int amount, String macType) {
-        if (mCanReceiveMoney && mIsSuccessOpenSerial && kd.sp().getIsSuccessOutCoin()) {
-            if (mDialogCash != null && mDialogCash.isShowing()) {
-                lastCashBuyCoins.clear();
-
-                try {
-                    if (Double.valueOf(mDialogCash.getShouldPrice()) <= 0) {
-                        kd.sp().sendOutMomeyCmd(macType);
-                        mDialogCash.dismiss();
-                        return;
-                    }
-                } catch (Exception e) {
-                    kd.sp().sendOutMomeyCmd(macType);
-                    mDialogCash.dismiss();
-                    return;
-                }
-
-                mDialogCash.freshCountDown();
-                //判断是否超出应收金额
-                Double count = Double.valueOf(mDialogCash.getHadPrice()) + amount;
-                if (count > Double.valueOf(mDialogCash.getShouldPrice())) {
-                    autoMathPackageList(count.toString(), macType);
-                } else {
-                    //收钱指令
-                    kd.sp().sendGetMomeyCmd(macType);
-                }
-            } else {
-                //退钱指令
-                kd.sp().sendOutMomeyCmd(macType);
-            }
-        } else {
-            if (!mCanReceiveMoney) {
-                new TisDialog(this).create()
-                        .setMessage("纸钞机异常，请联系管理员").show();
-            } else {
-                new TisDialog(this).create()
-                        .setMessage("币斗没币或异常，请联系管理员").show();
-            }
-        }
-    }
-
-    @Override
-    public void onReceivedMomeySuccess(int amount, String macType) {
-        Log.e(TAG, "onReceivedMomeySuccess");
-        if (mDialogCash != null && mDialogCash.isShowing()) {
-
-        }
-        if (lastCashBuyCoins != null && !lastCashBuyCoins.isEmpty()) {
-            Log.e("TAG", "onReceivedMomeySuccess 超出刷新");
-            ArrayList<BuyCoins> list = new ArrayList<>();
-            list.addAll(lastCashBuyCoins);
-            mDialogCash.setInfo(list);
-        }
-
-        Double count = Double.valueOf(mDialogCash.getHadPrice()) + amount;
-        try {
-            mDialogCash.setHadPrice(count.toString());
-        } catch (Exception e) {
-            mDialogCash.setHadPrice(String.valueOf(amount));
-        }
-
-        //存入本地数据
-
-        int id = saveLocalCashRecord(Double.valueOf(mDialogCash.getHadPrice()), mDialogCash.getLocalId());
-        mDialogCash.setLocalId(id);
-
-        if (Double.valueOf(mDialogCash.getHadPrice()) >= Double.valueOf(mDialogCash.getShouldPrice())) {
-            mDialogCash.showOutSaveButton();
-        }
-    }
-
-    @Override
-    public void onReceivedMomeyFail(String macType) {
-        if (mDialogCash != null && mDialogCash.isShowing()) {
-            mDialogCash.freshCountDown();
-        }
-    }
-
-    @Override
-    public void onSendCompleteData(byte[] bytes) {
-
-    }
-
-    @Override
-    public void onSerialPortOpenFail(File file) {
-
-    }
-
-    @Override
-    public void onSerialPortOpenSuccess(File file) {
-
-    }
-
-    @Override
-    public void onMachieConnectedSuccess(String device) {
-        //币斗
-        Log.e("MADV", " onMachieConnectedSuccess device " + device.toString());
-        if (device.contains(kd.sp().getDevice("3"))) {
-            Log.e("MA", "su");
-            mIsSuccessOpenSerial = true;
-        }
-        //纸币机
-        if (device.contains(kd.sp().getDevice("1")) || device.contains(kd.sp().getDevice("2"))) {
-            mCanReceiveMoney = true;
-            try {
-                kd.sp().colseBanknote();
-            } catch (Exception e) {
-
-            }
-        }
-    }
-
-    @Override
-    public void onMachieCommectedFail(String device) {
-        //币斗
-        Log.e("MADV", " onMachieCommectedFail device " + device.toString());
-        if (device.contains(kd.sp().getDevice("3"))) {
-            mIsSuccessOpenSerial = false;
-            Log.e("MA", "FA");
-        }
-        //纸币机
-        if (device.contains(kd.sp().getDevice("1")) || device.contains(kd.sp().getDevice("2"))) {
-            mCanReceiveMoney = false;
-        }
-    }
-
-    private TisOutCoinsDialog mDialogOutCoins;
-
-    /**
-     * 显示出票界面
-     */
-    private void showOutCoinsDialog(int num) {
-        if (num > 200) {
-            mDialogOutCoins = new TisOutCoinsDialog(this).create().setTotalNum(num + "")
-                    .setNum("0").showContiune(View.VISIBLE).show();
-        } else {
-            mDialogOutCoins = new TisOutCoinsDialog(this).create().setTotalNum(num + "")
-                    .setNum("0").show();
-        }
-
-        kd.sp().bdSendOutCoin(num, kd.sp().getDevice("3"), 1);
-    }
-
-    /**
-     * 关闭显示出币界面
-     */
-    private void closeOutCoinDialog() {
-//        exitMember()
-        mBaseActivityHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (mDialogOutCoins != null) {
-                    mDialogOutCoins.dismiss();
-                }
-            }
-        }, 3000);
-    }
-
-
-    /**
-     * 提币更新数据接口
-     *
-     * @param num
-     */
-    private void takeUpdateOutCoinLog(int num) {
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("OutCoins", num + "");
-        hashMap.put("StockBillID", StockBillID);
-
-        if (null == memberInfo) {
-            hashMap.put("CustID", Constance.machineFLTUserID);
-            hashMap.put("IsSaveCard", String.valueOf("false"));
-        } else {
-            hashMap.put("CustID", memberInfo.getId());
-            hashMap.put("IsSaveCard", String.valueOf("true"));
-        }
-        hashMap.put("sign", SignParamUtil.getSignStr(hashMap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.UpdateOutCoinLog, hashMap, new XutilsCallback<String>() {
-            @Override
-            public void onSuccessData(String result) {
-                Log.i(TAG, "takeUpdateOutCoinLog result = " + result);
-                JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    ArrayList<String> sbillList = new ArrayList<String>();
-                    sbillList.add(StockBillID);
-                    DBDao.getInstance().updateStateOutCoinsRecord(sbillList);
-                } else {
-                    Constance.maxOutCoinValue = 200;
-                }
-            }
-
-            @Override
-            public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "takeUpdateOutCoinLog onCancelled = " + cex);
-            }
-
-            @Override
-            public void onError(Throwable ex, boolean isOnCallback) {
-
-            }
-
-            @Override
-            public void onFinished() {
-                StockBillID = "";
-            }
-        });
-    }
-
-    /**
-     * 提币失败，更新数据接口
-     *
-     * @param num
-     */
-    private void takeFailUpdateOutCoinLog(int num) {
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("OutCoins", num + "");
-        hashMap.put("StockBillID", StockBillID);
-
-        if (null == memberInfo) {
-            hashMap.put("CustID", Constance.machineFLTUserID);
-            hashMap.put("IsSaveCard", String.valueOf("false"));
-        } else {
-            hashMap.put("CustID", memberInfo.getId());
-            hashMap.put("IsSaveCard", String.valueOf("true"));
-        }
-        hashMap.put("sign", SignParamUtil.getSignStr(hashMap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.UpdateOutCoinLog, hashMap, new XutilsCallback<String>() {
-            @Override
-            public void onSuccessData(String result) {
-                Log.i(TAG, "takeFailUpdateOutCoinLog result = " + result);
-                JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    ArrayList<String> sbillList = new ArrayList<String>();
-                    sbillList.add(StockBillID);
-                    DBDao.getInstance().updateStateOutCoinsRecord(sbillList);
-
-                    if (LocalDefines.sIsLogin) {
-                        kd.sp().bdCleanError();
-                        if (mDialogOutCoins != null) {
-                            mDialogOutCoins.setBugText("机器没币，未出的币已经返还卡中！");
-                        }
-                        VipLogout();
-                        showLoginInfo();
-
-                        mBaseActivityHandler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mDialogOutCoins != null) {
-                                    mDialogOutCoins.dismiss();
-                                }
-                            }
-                        }, 8000);
-                    } else {
-                        if (mDialogOutCoins != null && !mDialogOutCoins.isShowing()) {
-                            mDialogOutCoins.setBugText("机器没币，请联系管理员补币");
-                            mDialogOutCoins.showClose();
-                        }
-                    }
-                } else {
-                    if (mDialogOutCoins != null && !mDialogOutCoins.isShowing()) {
-                        mDialogOutCoins.setBugText("机器故障或没币，请联系管理员补币");
-                        mDialogOutCoins.showClose();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "takeFailUpdateOutCoinLog onCancelled = " + cex);
-            }
-
-            @Override
-            public void onError(Throwable ex, boolean isOnCallback) {
-
-            }
-
-            @Override
-            public void onFinished() {
-                StockBillID = "";
-            }
-        });
-    }
-
-    private TisCashPayDialog mDialogCash;
-
-    //显示纸币付款提示窗
-    private void showCashPayDialog(ArrayList<BuyCoins> buycoinsList) {
-        mDialogCash = new TisCashPayDialog(this).create()
-                .setInfo(buycoinsList)
-                .show();
-    }
-
-    /**
-     * 自动匹配套餐
-     *
-     * @param price
-     * @param macType
-     */
-    private void autoMathPackageList(String price, String macType) {
-        KProgressHUD dialog = KProgressHUD.create(this).setStyle(KProgressHUD.Style.SPIN_INDETERMINATE).setLabel("请稍后...").show();
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("PackageType", "Pa01");
-        hashMap.put("MachineID", SharePerferenceUtil.getInstance().getValue(Constance.MachineID, "").toString());
-
-        if (null == memberInfo) {
-            hashMap.put("CustID", Constance.machineFLTUserID);
-        } else {
-            hashMap.put("CustID", memberInfo.getId());
-        }
-
-        hashMap.put("Amount", price);
-        hashMap.put("sign", SignParamUtil.getSignStr(hashMap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.AutoMathPackageList, hashMap, new XutilsCallback<String>() {
-            @Override
-            public void onSuccessData(String result) {
-                Log.i(TAG, "autoMathPackageList result = " + result);
-                JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    lastCashBuyCoins = GsonUtil.Companion.jsonToList(jsonObject.get("Data").getAsJsonArray().toString(), BuyCoins.class);
-                    //收钱指令
-                    kd.sp().sendGetMomeyCmd(macType);
-                } else {
-                    //退钱指令
-                    kd.sp().sendOutMomeyCmd(macType);
-                }
-            }
-
-            @Override
-            public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "autoMathPackageList onCancelled = " + cex);
-            }
-
-            @Override
-            public void onError(Throwable ex, boolean isOnCallback) {
-
-            }
-
-            @Override
-            public void onFinished() {
-                if (dialog != null && dialog.isShowing()) {
-                    dialog.dismiss();
-                }
-            }
-        });
-    }
-
-    /**
-     * 自动匹配套餐
-     *
-     * @param price
-     */
-    public void autoMathPackageListNoType(String price) {
-        KProgressHUD dialog = KProgressHUD.create(this).setStyle(KProgressHUD.Style.SPIN_INDETERMINATE).setLabel("请稍后...").show();
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("PackageType", "Pa01");
-        hashMap.put("MachineID", SharePerferenceUtil.getInstance().getValue(Constance.MachineID, "").toString());
-
-        if (null == memberInfo) {
-            hashMap.put("CustID", Constance.machineFLTUserID);
-        } else {
-            hashMap.put("CustID", memberInfo.getId());
-        }
-
-        hashMap.put("Amount", price);
-        hashMap.put("sign", SignParamUtil.getSignStr(hashMap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.AutoMathPackageList, hashMap, new XutilsCallback<String>() {
-            @Override
-            public void onSuccessData(String result) {
-                Log.i(TAG, "autoMathPackageList result = " + result);
-                JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    lastCashBuyCoins = GsonUtil.Companion.jsonToList(jsonObject.get("Data").getAsJsonArray().toString(), BuyCoins.class);
-                    Log.i(TAG, "getPackageList mCoinListData size = " + mCoinListData.size());
-                    //收钱指令
-//                    kd.sp().sendGetMomeyCmd(macType);
-                    //TODO 跳转至 BuyCoinsDetailFragment，参考里面的代码
-
-                } else {
-                    //退钱指令
-//                    kd.sp().sendOutMomeyCmd(macType);
-                }
-            }
-
-            @Override
-            public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "autoMathPackageList onCancelled = " + cex);
-            }
-
-            @Override
-            public void onError(Throwable ex, boolean isOnCallback) {
-
-            }
-
-            @Override
-            public void onFinished() {
-                if (dialog != null && dialog.isShowing()) {
-                    dialog.dismiss();
-                }
-            }
-        });
-    }
-
-    /**
-     * 获取套餐列表
-     */
-    private void getPackageList() {
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("PackageType", "Pa01");
-        hashMap.put("MachineID", SharePerferenceUtil.getInstance().getValue(Constance.MachineID, "").toString());
-        hashMap.put("PageIndex", "1");
-
-        if (null == memberInfo || TextUtils.isEmpty(memberInfo.getId())) {
-//            hashMap.put("CustID", Constance.machineFLTUserID);
-        } else {
-            hashMap.put("CustID", memberInfo.getId());
-        }
-
-        hashMap.put("PageNum", "10");
-        hashMap.put("sign", SignParamUtil.getSignStr(hashMap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.GetPackageList, hashMap, new XutilsCallback<String>() {
-            @Override
-            public void onSuccessData(String result) {
-                Log.i(TAG, "getPackageList result = " + result);
-                JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    mCoinListData = GsonUtil.Companion.jsonToList(jsonObject.get("Data").getAsJsonArray().toString(), BuyCoins.class);
-                    Log.i(TAG, "getPackageList mCoinListData size = " + mCoinListData.size());
-                    //自由购买
-                    if (mCoinListData != null && mCoinListData.size() > 0) {
-                        initCoinList();
-                        mTvNoPackageTip.setVisibility(View.GONE);
-                    } else {
-                        mTvNoPackageTip.setVisibility(View.VISIBLE);
-                    }
-
-                } else {
-
-                }
-            }
-
-            @Override
-            public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "getPackageList onCancelled = " + cex);
-            }
-
-            @Override
-            public void onError(Throwable ex, boolean isOnCallback) {
-
-            }
-
-            @Override
-            public void onFinished() {
-
-            }
-        });
-    }
-
-    /**
-     * 获取套餐信息
-     */
-    public void getPackageInfo(String pid, int position) {
-        MemberInfo memberInfo = GsonUtil.Companion.jsonToObject(SharePerferenceUtil.getInstance().getValue(Constance.member_Info, "").toString(), MemberInfo.class);
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("PackageID", pid);
-
-        if (null == memberInfo /*|| TextUtils.isEmpty(memberInfo.getId())*/) {
-//            hashMap.put("CustID", Constance.machineFLTUserID);
-            if (LocalDefines.sIsLogin) {
-                hashMap.put("CustID", memberInfo.getId());
-            } else {
-                hashMap.put("CustID", Constance.machineFLTUserID);
-            }
-        }
-
-        hashMap.put("packageQty", "1");
-        hashMap.put("sign", SignParamUtil.getSignStr(hashMap));
-
-        HttpUtils.xPostJson(Constance.MEMBER_HOST + Constance.GetPackageSaleInfo, hashMap, new XutilsCallback<String>() {
-            @Override
-            public void onSuccessData(String result) {
-                Log.i(TAG, "getPackageList result = " + result);
-                JsonObject jsonObject = GsonUtil.Companion.jsonToObject(result, JsonObject.class);
-                if (jsonObject.has("return_Code") && jsonObject.get("return_Code").toString().equals("200")) {
-                    mCoinListData = GsonUtil.Companion.jsonToList(jsonObject.get("Data").getAsJsonArray().toString(), BuyCoins.class);
-                    Log.i(TAG, "getPackageList mCoinListData size = " + mCoinListData.size());
-
-                    //TODO 跳转至 BuyCoinsDetailFragment，参考里面的代码
-                } else {
-
-                }
-            }
-
-            @Override
-            public void onCancelled(CancelledException cex) {
-                Log.i(TAG, "getPackageList onCancelled = " + cex);
-            }
-
-            @Override
-            public void onError(Throwable ex, boolean isOnCallback) {
-
-            }
-
-            @Override
-            public void onFinished() {
-
-            }
-        });
+    public void replaceFragment(Fragment fragment) {
+//        mflContaner.setVisibility(View.VISIBLE);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setTransition(FragmentTransaction.TRANSIT_ENTER_MASK);
+        transaction.replace(R.id.fl_fragment_container, fragment);
+        transaction.commit();
     }
 }

@@ -43,6 +43,7 @@ import com.qy.zgz.mall.page.fragment.MemberCenterFragment;
 import com.qy.zgz.mall.page.fragment.PaymentFragment;
 import com.qy.zgz.mall.page.fragment.ReceiverFragment;
 import com.qy.zgz.mall.page.fragment.VipCenterFragment;
+import com.qy.zgz.mall.page.fragment.VipCenterInfoFragment;
 import com.qy.zgz.mall.page.index_function.CustomerServiceDialog;
 import com.qy.zgz.mall.slot_machines.game.SlotMachinesActivity;
 
@@ -82,15 +83,9 @@ public class VIPCenterActivity extends BaseActivity {
     Banner mBanner;
     private Cranemaapi mCranemaApi;
 
-//    @BindView(R.id.sdv_customor_enquiry)
-//    SimpleDraweeView mSdvCustomorEnquiry;
-//    @BindView(R.id.sdv_setting)
-//    SimpleDraweeView mSdvSetting;
-
+    /* 底部信息栏 */
     @BindView(R.id.btn_logout)
     Button mBtnLogout;
-
-    /* 底部信息栏 */
     @BindView(R.id.tv_login_please)
     TextView mTvLoginPlease;
     @BindView(R.id.tv_vip_name)
@@ -103,50 +98,6 @@ public class VIPCenterActivity extends BaseActivity {
     MyTextView mTvGameCoin;
     @BindView(R.id.tv_game_coin_count)
     MyTextView mTvGameCoinCount;
-
-    /*-- 会员中心信息栏--*/
-    @BindView(R.id.tv_vip_name_title)
-    TextView mTvVipNameTitle;
-    @BindView(R.id.tv_vip_number)
-    TextView mTvVipNumber;
-    @BindView(R.id.tv_vip_level)
-    TextView mTvVipLevel;
-    @BindView(R.id.tv_lottery_count_title)
-    TextView mTvLotteryCountTitle;
-    @BindView(R.id.tv_game_coin_count_title)
-    TextView mTvGameCoinCountTitle;
-    @BindView(R.id.tv_point_count)
-    TextView mTvPointCount;
-    @BindView(R.id.tv_replacement_coin_count)
-    TextView mTvReplacementCoinTitle;
-    @BindView(R.id.tv_deposit_count)
-    TextView mTvDeposit;
-
-    @BindView(R.id.tl_tab)
-    TabLayout mTabLayout;
-    @BindView(R.id.vp_pager)
-    ViewPager mViewPager;
-
-    @BindView(R.id.rl_pending_payment)
-    AutoRelativeLayout mRlPendingPayment;
-    @BindView(R.id.rl_pending_delivery)
-    AutoRelativeLayout mRlPendingDelivery;
-    @BindView(R.id.rl_pending_receiver)
-    AutoRelativeLayout mRlPendingReceiver;
-    @BindView(R.id.rl_pending_evalution)
-    AutoRelativeLayout mRlPendingEvalution;
-    @BindView(R.id.rl_my_order)
-    AutoRelativeLayout mRlMyOrder;
-    @BindView(R.id.iv_hide_viewpager)
-    ImageView mIvHideViewPager;
-    @BindView(R.id.rl_check_all_order)
-    AutoRelativeLayout mRlCheckAllOrder;
-    @BindView(R.id.ll_order_info)
-    AutoLinearLayout mLlOrderInfo;
-    @BindView(R.id.ll_vip_center_main_layout)
-    AutoLinearLayout mLlMainLayout;
-    @BindView(R.id.iv_setting)
-    ImageView mIvSetting;
     @BindView(R.id.tv_shop_name)
     TextView mTvShopName;
     @BindView(R.id.iv_shopping_cart)
@@ -156,16 +107,9 @@ public class VIPCenterActivity extends BaseActivity {
     @BindView(R.id.ll_vip_info_layout)
     AutoLinearLayout mLlVipInfoLayout;
 
-    private TabPagerAdapter mViewPageAdapter;
-
-    public static String wx_qrcode = "";
-
     private static String TAG = "VIPCenterActivity";
 
     private LoginCountDownTimer countDownTimer;
-
-    //检查微信登录handle
-    private Handler wx_handle = new Handler();
 
     @Override
     public void createView() {
@@ -180,9 +124,8 @@ public class VIPCenterActivity extends BaseActivity {
 //        mSdvSetting.setImageURI(LocalDefines.getImgUriHead(this) + R.drawable.ic_setting);
         countDownTimer = new LoginCountDownTimer(this, 30000, 1000);
         mTvShopName.setText(SharePerferenceUtil.getInstance().getValue("type_shop_name","").toString());
-        initViewPager();
         initBanner();
-        viewLongClickListener();
+//        viewLongClickListener();
     }
 
     @Override
@@ -199,12 +142,12 @@ public class VIPCenterActivity extends BaseActivity {
         VbarUtils.getInstance(this).stopScan();
         countDownTimer.cancel();
         mBaseActivityHandler.removeCallbacksAndMessages(null);
-        wx_handle.removeCallbacksAndMessages(null);
     }
 
     //用户操作监听
     @Override
     public void onUserInteraction() {
+//        Log.i("test_xhm", "onUserInteraction");
         Constance.lastTouchTime = System.currentTimeMillis();
         //重新倒计时
         if (TextUtils.isEmpty(SharePerferenceUtil.getInstance()
@@ -218,37 +161,37 @@ public class VIPCenterActivity extends BaseActivity {
         super.onUserInteraction();
     }
 
-    private void viewLongClickListener(){
-        mIvSetting.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                new UnityDialog(VIPCenterActivity.this).setHint("是否更换店铺")
-                        .setCancel("取消", null)
-                        .setConfirm("确定", new UnityDialog.OnConfirmDialogListener() {
-                            @Override
-                            public void confirm(UnityDialog unityDialog, String content) {
-                                SharePerferenceUtil.getInstance().setValue("typeId", "");
-                                SharePerferenceUtil.getInstance().setValue("cinemaid", "");
-                                SharePerferenceUtil.getInstance().setValue("type_shop_name", "");
-                                //清除机器场地BranchID
-                                SharePerferenceUtil.getInstance().setValue(Constance.BranchID,"");
-                                //清除机器ID
-                                SharePerferenceUtil.getInstance().setValue(Constance.MachineID,"");
-                                //清除机器VPN
-                                SharePerferenceUtil.getInstance().setValue(Constance.Vpn,"");
-                                //清除会员登录信息
-                                SharePerferenceUtil.getInstance().setValue(Constance.member_Info,"");
-                                //清除商城会员登录accessToken
-                                SharePerferenceUtil.getInstance().setValue(Constance.user_accessToken,"");
-                                //清除商城会员登录shop_id
-                                SharePerferenceUtil.getInstance().setValue(Constance.shop_id,"");
-                                MyApplication.getInstance().restartApp();
-                            }
-                        });
-                return false;
-            }
-        });
-    }
+//    private void viewLongClickListener(){
+//        mIvSetting.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View view) {
+//                new UnityDialog(VIPCenterActivity.this).setHint("是否更换店铺")
+//                        .setCancel("取消", null)
+//                        .setConfirm("确定", new UnityDialog.OnConfirmDialogListener() {
+//                            @Override
+//                            public void confirm(UnityDialog unityDialog, String content) {
+//                                SharePerferenceUtil.getInstance().setValue("typeId", "");
+//                                SharePerferenceUtil.getInstance().setValue("cinemaid", "");
+//                                SharePerferenceUtil.getInstance().setValue("type_shop_name", "");
+//                                //清除机器场地BranchID
+//                                SharePerferenceUtil.getInstance().setValue(Constance.BranchID,"");
+//                                //清除机器ID
+//                                SharePerferenceUtil.getInstance().setValue(Constance.MachineID,"");
+//                                //清除机器VPN
+//                                SharePerferenceUtil.getInstance().setValue(Constance.Vpn,"");
+//                                //清除会员登录信息
+//                                SharePerferenceUtil.getInstance().setValue(Constance.member_Info,"");
+//                                //清除商城会员登录accessToken
+//                                SharePerferenceUtil.getInstance().setValue(Constance.user_accessToken,"");
+//                                //清除商城会员登录shop_id
+//                                SharePerferenceUtil.getInstance().setValue(Constance.shop_id,"");
+//                                MyApplication.getInstance().restartApp();
+//                            }
+//                        });
+//                return false;
+//            }
+//        });
+//    }
 
     private void initBanner() {
         ArrayList<Integer> banList = new ArrayList<>();
@@ -283,49 +226,6 @@ public class VIPCenterActivity extends BaseActivity {
             Log.i(TAG, "local has not data");
             getCranemaFromServer();
         }
-
-    }
-
-    private void showViewPager() {
-        if(LocalDefines.sIsLogin) {
-            mRlPendingPayment.setVisibility(View.GONE);
-            mRlPendingDelivery.setVisibility(View.GONE);
-            mRlPendingReceiver.setVisibility(View.GONE);
-            mRlPendingEvalution.setVisibility(View.GONE);
-            mLlOrderInfo.setVisibility(View.GONE);
-            mLlMainLayout.setVisibility(View.GONE);
-            mTabLayout.setVisibility(View.VISIBLE);
-            mViewPager.setVisibility(View.VISIBLE);
-            mRlMyOrder.setVisibility(View.VISIBLE);
-        }else {
-            ToastUtil.showToast(this, "请先登录");
-        }
-    }
-
-    private void hideViewPager() {
-        mRlPendingPayment.setVisibility(View.VISIBLE);
-        mRlPendingDelivery.setVisibility(View.VISIBLE);
-        mRlPendingReceiver.setVisibility(View.VISIBLE);
-        mRlPendingEvalution.setVisibility(View.VISIBLE);
-        mLlOrderInfo.setVisibility(View.VISIBLE);
-        mLlMainLayout.setVisibility(View.VISIBLE);
-        mRlMyOrder.setVisibility(View.GONE);
-        mTabLayout.setVisibility(View.GONE);
-        mViewPager.setVisibility(View.GONE);
-    }
-
-    private void initViewPager() {
-        ArrayList<Fragment> fragmentArrayList = new ArrayList<>();
-        fragmentArrayList.add(PaymentFragment.newInstance());
-        fragmentArrayList.add(DeliveryFragment.newInstance());
-        fragmentArrayList.add(ReceiverFragment.newInstance());
-        fragmentArrayList.add(EvalutionFragment.newInstance());
-        fragmentArrayList.add(AllOrderFragment.newInstance());
-        mViewPageAdapter = new TabPagerAdapter(this, getSupportFragmentManager(), fragmentArrayList);
-        mViewPager.setAdapter(mViewPageAdapter);
-//        mTabLayout.setTabMode(TabLayout.MODE_FIXED);    // 默认模式，可以不设置);
-        mTabLayout.setupWithViewPager(mViewPager);
-        mTabLayout.setupWithViewPager(mViewPager);//给TabLayout设置关联ViewPager，如果设置了ViewPager，那么ViewPagerAdapter中的getPageTitle()方法返回的就是Tab上的标题
     }
 
     private void getCranemaFromServer() {
@@ -337,15 +237,10 @@ public class VIPCenterActivity extends BaseActivity {
                 String json = gson.toJson(data);
                 SharePerferenceUtil.getInstance().setValue("cranemaapi", json);
                 SharePerferenceUtil.getInstance().setValue(LocalDefines.LAST_GET_BANNER_TIME, System.currentTimeMillis());
-//                initDot();
-//                showData();
                 if (TimeUtil.getInstance().isExceedTime()) {
                     FileManager.getInstance().deleteSvaeFile();
                     FileManager.getInstance().deleteAPKSvaeFile();
                 }
-                //下载图片
-//                getImageList();
-//                handler.removeCallbacks(getCranRunnable);
                 if (null != mCranemaApi.getImages() && !mCranemaApi.getVideodata().isEmpty()) {
                     mBanner.update(mCranemaApi.getImages());
                 }
@@ -355,8 +250,6 @@ public class VIPCenterActivity extends BaseActivity {
             @Override
             public void onFailure(int code, String msg) {
                 ToastUtil.showToast(VIPCenterActivity.this, msg);
-//                handler.postDelayed(getCranRunnable, 5000);
-//                showData();
             }
 
             @Override
@@ -372,9 +265,7 @@ public class VIPCenterActivity extends BaseActivity {
 
     @OnClick({R.id.btn_logout, R.id.iv_new_game, R.id.iv_vip_center,
             R.id.iv_purchase_coin, R.id.iv_exchange_mall, R.id.iv_lucky_lottery,
-            R.id.sdv_customor_enquiry, R.id.rl_pending_payment, R.id.rl_pending_delivery,
-            R.id.rl_pending_receiver, R.id.rl_pending_evalution, R.id.iv_hide_viewpager,
-            R.id.rl_check_all_order, R.id.tv_main_page})
+            R.id.sdv_customor_enquiry, R.id.tv_main_page})
     public void onClick(View view) {
         Intent intent = new Intent();
         switch (view.getId()) {
@@ -389,24 +280,15 @@ public class VIPCenterActivity extends BaseActivity {
                 finish();
                 break;
             case R.id.iv_vip_center:
-//                intent.setClass(this, VIPCenterActivity.class);
-//                intent.putExtra("cinemaType", mCinemaType);
-//                intent.putExtra("cinemaid", mCinemaid);
-//                startActivity(intent);
-//                finish();
                 ToastUtil.showToast(this, "已达该页");
                 break;
             case R.id.iv_purchase_coin:
                 intent.setClass(this, PurchaseCoinActivity.class);
-//                intent.putExtra("cinemaType", mCinemaType);
-//                intent.putExtra("cinemaid", mCinemaid);
                 startActivity(intent);
                 finish();
                 break;
             case R.id.iv_exchange_mall:
                 intent.setClass(this, MallActivity.class);
-//                intent.putExtra("cinemaType", mCinemaType);
-//                intent.putExtra("cinemaid", mCinemaid);
                 startActivity(intent);
                 finish();
                 break;
@@ -417,29 +299,6 @@ public class VIPCenterActivity extends BaseActivity {
                 break;
             case R.id.sdv_customor_enquiry:
                 new CustomerServiceDialog(this).create().show();
-                break;
-            case R.id.rl_check_all_order:
-                showViewPager();
-                mViewPager.setCurrentItem(4, true);
-                break;
-            case R.id.rl_pending_payment:
-                showViewPager();
-                mViewPager.setCurrentItem(0, true);
-                break;
-            case R.id.rl_pending_delivery:
-                showViewPager();
-                mViewPager.setCurrentItem(1, true);
-                break;
-            case R.id.rl_pending_receiver:
-                showViewPager();
-                mViewPager.setCurrentItem(2, true);
-                break;
-            case R.id.rl_pending_evalution:
-                showViewPager();
-                mViewPager.setCurrentItem(3, true);
-                break;
-            case R.id.iv_hide_viewpager:
-                hideViewPager();
                 break;
             case R.id.tv_main_page:
                 intent.setClass(VIPCenterActivity.this, HomePageActivity.class);
@@ -454,24 +313,12 @@ public class VIPCenterActivity extends BaseActivity {
     public void showLoginInfo() {
         if (TextUtils.isEmpty(SharePerferenceUtil.getInstance()
                 .getValue(Constance.member_Info, "").toString())) {
-
+            LocalDefines.sIsLogin = false;
             countDownTimer.cancel();
             //未登录状态
-            mBaseActivityHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    //开启登录识别扫描器
-//                    startLoginRecognitionScan();
-                    //创建新的微信授权二维码
-//                    CreateScanCode(SharePerferenceUtil.getInstance()
-//                            .getValue(Constance.MachineID, "").toString());
-                }
-            }, 500);
-
+            replaceFragment(new VipCenterFragment());
             mFlContainer.setVisibility(View.VISIBLE);
             mLlVipInfoLayout.setVisibility(View.GONE);
-            replaceFragment(new VipCenterFragment());
-
             mTvLoginPlease.setVisibility(View.VISIBLE);
             mTvVipName.setVisibility(View.INVISIBLE);
             mTvlottery.setVisibility(View.INVISIBLE);
@@ -481,31 +328,18 @@ public class VIPCenterActivity extends BaseActivity {
             mBtnLogout.setVisibility(View.GONE);
             mIvShoppingCart.setVisibility(View.GONE);
 
-            mTvVipNameTitle.setText("会员名称：--/--");
-            mTvVipNumber.setText("会员编号：--/--");
-            mTvVipLevel.setText("会员等级：--/--");
-            mTvLotteryCountTitle.setText("--/--");
-            mTvGameCoinCountTitle.setText("--/--");
-            mTvPointCount.setText("--/--");
-            mTvReplacementCoinTitle.setText("--/--");
-            mTvDeposit.setText("--/--");
-
-
         } else {
-            Log.i("XHM_TEST", "登陆成功显示数据");
+            LocalDefines.sIsLogin = true;
             countDownTimer.cancel();
             countDownTimer.start();
             //初始化登录信息
             String logininfo = SharePerferenceUtil.getInstance()
                     .getValue(Constance.member_Info, "").toString();
-            Log.i("XHM_TEST", "数据logininfo = " + logininfo);
             MemberInfo loginJson = GsonUtil.Companion.jsonToObject(logininfo, MemberInfo.class);
 
             if (loginJson != null) {
-                mFlContainer.setVisibility(View.GONE);
-                mLlVipInfoLayout.setVisibility(View.VISIBLE);
-//                replaceFragment(null);
-
+                replaceFragment(new VipCenterInfoFragment());
+                mFlContainer.setVisibility(View.VISIBLE);
                 mTvLoginPlease.setVisibility(View.GONE);
                 mTvVipName.setVisibility(View.VISIBLE);
                 mTvlottery.setVisibility(View.VISIBLE);
@@ -518,17 +352,7 @@ public class VIPCenterActivity extends BaseActivity {
                 mIvShoppingCart.setVisibility(View.VISIBLE);
                 mTvLotteryCount.setText(loginJson.getTickets().substring(0, loginJson.getTickets().indexOf(".")));
                 mTvGameCoinCount.setText(loginJson.getCoins().substring(0, loginJson.getCoins().indexOf(".")));
-                mTvLotteryCountTitle.setText(loginJson.getTickets().substring(0, loginJson.getTickets().indexOf(".")));
-                mTvGameCoinCountTitle.setText(loginJson.getCoins().substring(0, loginJson.getCoins2().indexOf(".")));
-
                 mTvVipName.setText(loginJson.getCustName());
-                mTvVipNameTitle.setText("会员名称：" + loginJson.getCustName());
-                mTvVipNumber.setText("会员编号：" + loginJson.getNumber());
-                mTvVipLevel.setText("会员等级：" + loginJson.getLevelName());
-
-                mTvPointCount.setText(loginJson.getPoint().substring(0, loginJson.getPoint().indexOf(".")));
-                mTvReplacementCoinTitle.setText(loginJson.getDeposit().substring(0, loginJson.getDeposit().indexOf(".")));
-                mTvDeposit.setText(loginJson.getMoney().substring(0, loginJson.getMoney().indexOf(".")));
             }
         }
     }
@@ -573,6 +397,7 @@ public class VIPCenterActivity extends BaseActivity {
     private void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setTransition(FragmentTransaction.TRANSIT_ENTER_MASK);
         transaction.replace(R.id.fl_fragment_container, fragment);
         transaction.commit();
     }

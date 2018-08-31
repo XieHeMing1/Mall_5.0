@@ -55,9 +55,11 @@
     </style>
 
     <!-- Tablayout字体风格 -->
-    <style name="TabLayoutTextStyle">
+    <style name="TabLayoutTextStyle" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">@dimen/tablayout_font_size</item>
         <item name="android:textColor">@color/color_black</item>
+        <item name="textAllCaps">true</item>
+        <item name="android:textAllCaps">true</item>
     </style>
 
 </resources>

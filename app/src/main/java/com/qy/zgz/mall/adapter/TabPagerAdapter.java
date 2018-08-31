@@ -18,10 +18,9 @@ import java.util.ArrayList;
 
 public class TabPagerAdapter extends FragmentPagerAdapter {
 
-    private String[] mTitleArray = {"待付款", "待发货" ,"待收货", "待评价", "全部"};
     private Context mContext;
     private ArrayList<Fragment> mFragmentList;
-
+    private String[] mTitleArray = {"待付款", "待发货" ,"待收货", "待评价", "全部"};
 
     public TabPagerAdapter(Context context, FragmentManager fm, ArrayList<Fragment> fragmentList) {
         super(fm);

@@ -13,11 +13,10 @@
         android:id="@+id/v_buy_coins_clean_error"
         android:layout_width="100px"
         android:layout_height="100px"
+        android:layout_alignParentLeft="true"
         android:background="@color/transparent"
         android:clickable="true"
-        android:layout_alignParentLeft="true"
-        android:longClickable="true"
-        />
+        android:longClickable="true" />
 
     <com.zhy.autolayout.AutoLinearLayout
         android:id="@+id/ll_purchase_center"
@@ -69,8 +68,7 @@
                 android:layout_height="220px"
                 android:layout_marginTop="100px"
                 android:foreground="?android:attr/selectableItemBackground"
-                android:src="@drawable/ic_purchase_coin_tab">
-            </ImageView>
+                android:src="@drawable/ic_purchase_coin_tab"></ImageView>
 
             <ImageView
                 android:id="@+id/rl_exchange_coin"
@@ -146,23 +144,43 @@
             android:layout_height="match_parent"
             android:background="@color/color_black" />
 
+
         <!--右边显示界面-->
         <com.zhy.autolayout.AutoLinearLayout
+            android:id="@+id/ll_right_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_purchase_coin_type"
+            <com.zhy.autolayout.AutoRelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="100px"
-                android:layout_marginLeft="90px"
-                android:layout_marginRight="90px"
-                android:layout_marginTop="50px"
-                android:gravity="center|left"
-                android:text="选择套餐"
-                android:textColor="@color/color_black"
-                android:textSize="90px" />
+                android:layout_marginTop="50px">
+
+                <TextView
+                    android:id="@+id/tv_purchase_coin_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="100px"
+                    android:layout_marginLeft="90px"
+                    android:layout_marginRight="90px"
+                    android:layout_alignParentLeft="true"
+                    android:gravity="center|left"
+                    android:text="选择套餐"
+                    android:textColor="@color/color_black"
+                    android:textSize="90px" />
+
+                <ImageView
+                    android:id="@+id/iv_manager_setting"
+                    android:layout_width="100px"
+                    android:layout_height="100px"
+                    android:layout_gravity="right"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginLeft="90px"
+                    android:layout_marginRight="90px"
+                    android:src="@drawable/ic_setting"/>
+
+            </com.zhy.autolayout.AutoRelativeLayout>
+
 
             <TextView
                 android:id="@+id/txt_timer_count"
@@ -176,6 +194,8 @@
                 android:textColor="@color/color_black"
                 android:textSize="80px" />
 
+
+
             <com.zhy.autolayout.AutoLinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="2300px"
@@ -184,24 +204,10 @@
                 android:layout_marginTop="50px"
                 android:background="@drawable/shape_coin_bg">
 
-                <!-- 提币购币界面 -->
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/rv_coin_type"
+                <FrameLayout
+                    android:id="@+id/fl_fragment_container"
                     android:layout_width="match_parent"
-                    android:layout_height="2100px"
-                    android:layout_marginLeft="30px"
-                    android:layout_marginRight="30px">
-
-                </android.support.v7.widget.RecyclerView>
-
-                <TextView
-                    android:id="@+id/tv_fg_buy_coins_notaocan_tis"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="此等级没有套餐，请联系前台!"
-                    android:textColor="@color/color_black"
-                    android:textSize="80px"
-                    android:visibility="gone" />
+                    android:layout_height="match_parent" />
 
                 <!-- 消费记录 -->
                 <com.zhy.autolayout.AutoLinearLayout
@@ -210,33 +216,6 @@
                     android:layout_height="match_parent"
                     android:layout_margin="30px"
                     android:orientation="vertical">
-
-                    <!--<TextView-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:gravity="center"-->
-                    <!--android:text="消费记录查询（1个月内）"-->
-                    <!--android:textColor="@color/color_black"-->
-                    <!--android:textSize="100px" />-->
-
-                   <!-- <com.zhy.autolayout.AutoRelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="300px"
-                        android:background="@drawable/share_white_30px">
-
-                        <Button
-                            android:id="@+id/btn_consumption_record"
-                            android:layout_width="550px"
-                            android:layout_height="200px"
-                            android:layout_centerVertical="true"
-                            android:layout_marginLeft="50px"
-                            android:background="@drawable/shape_blue_bg"
-                            android:gravity="center"
-                            android:text="全部记录"
-                            android:textColor="@color/color_white"
-                            android:textSize="70px" />
-
-                    </com.zhy.autolayout.AutoRelativeLayout>-->
 
                     <!-- 消费记录列表 -->
                     <com.zhy.autolayout.AutoLinearLayout
@@ -346,8 +325,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_margin="30px"
-                    android:visibility="gone"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <com.zhy.autolayout.AutoLinearLayout
                         android:layout_width="match_parent"
@@ -524,9 +503,9 @@
         android:layout_alignParentBottom="true"></include>
 
     <!--<com.facebook.drawee.view.SimpleDraweeView-->
-        <!--android:id="@+id/sdv_customor_enquiry"-->
-        <!--android:layout_width="500px"-->
-        <!--android:layout_height="180px"-->
-        <!--android:layout_alignParentRight="true"-->
-        <!--android:layout_marginTop="2800px" />-->
+    <!--android:id="@+id/sdv_customor_enquiry"-->
+    <!--android:layout_width="500px"-->
+    <!--android:layout_height="180px"-->
+    <!--android:layout_alignParentRight="true"-->
+    <!--android:layout_marginTop="2800px" />-->
 </com.zhy.autolayout.AutoRelativeLayout>

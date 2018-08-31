@@ -14,6 +14,7 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.qy.zgz.mall.KDSerialPort.KDSerialPort.kd;
 import com.qy.zgz.mall.Model.BuyCoins;
 import com.qy.zgz.mall.entities.CoinInfo;
+import com.qy.zgz.mall.page.fragment.PurchaseCoinFragment;
 import com.qy.zgz.mall.page.index.PurchaseCoinActivity;
 import com.qy.zgz.mall.utils.LocalDefines;
 import com.qy.zgz.mall.R;
@@ -30,7 +31,7 @@ public class CoinTypeAdapter extends RecyclerView.Adapter<CoinTypeAdapter.ViewHo
 
     private List<BuyCoins> mDataList;
     private List<CoinInfo> mTestList;
-    private PurchaseCoinActivity mActivity;
+    private PurchaseCoinFragment mFragment;
 
     public OnClickListener mListener;
 
@@ -42,15 +43,15 @@ public class CoinTypeAdapter extends RecyclerView.Adapter<CoinTypeAdapter.ViewHo
         this.mListener = listener;
     }
 
-    public CoinTypeAdapter(PurchaseCoinActivity activity, List<BuyCoins> dataList, List<CoinInfo> testList) {
-        this.mActivity = activity;
+    public CoinTypeAdapter(PurchaseCoinFragment fragment, List<BuyCoins> dataList, List<CoinInfo> testList) {
+        this.mFragment = fragment;
         this.mDataList = dataList;
         this.mTestList = testList;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mActivity).inflate(R.layout.item_coin_type, parent, false);
+        View view = LayoutInflater.from(mFragment.getActivity()).inflate(R.layout.item_coin_type, parent, false);
         return new ViewHolder(view);
     }
 
@@ -62,34 +63,34 @@ public class CoinTypeAdapter extends RecyclerView.Adapter<CoinTypeAdapter.ViewHo
             Log.i("CoinAdapter", "price = " + coinInfo.getPrice());
             switch (coinInfo.getPrice()) {
                 case -1:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_custom_price);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_custom_price);
                     break;
                 case 5:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_5);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_5);
 //                        holder.mTvCoinPrice.setText("￥5.00");
                     break;
                 case 10:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_10);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_10);
 //                        holder.mTvCoinPrice.setText("￥10.00");
                     break;
                 case 20:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_20);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_20);
 //                        holder.mTvCoinPrice.setText("￥20.00");
                     break;
                 case 50:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_50);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_50);
 //                        holder.mTvCoinPrice.setText("￥50.00");
                     break;
                 case 100:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_100);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_100);
 //                        holder.mTvCoinPrice.setText("￥100.00");
                     break;
                 case 150:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_150);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_150);
 //                        holder.mTvCoinPrice.setText("￥150.00");
                     break;
                 default:
-                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mActivity) + R.drawable.ic_coin_10);
+                    holder.mSdvCoinType.setImageURI(LocalDefines.getImgUriHead(mFragment.getActivity()) + R.drawable.ic_coin_10);
 //                        holder.mTvCoinPrice.setText("￥10.00");
                     break;
 
@@ -106,26 +107,26 @@ public class CoinTypeAdapter extends RecyclerView.Adapter<CoinTypeAdapter.ViewHo
                 String typeid = SharePerferenceUtil.getInstance().getValue("typeId", "").toString();
                 //欢乐熊版本
                 if (typeid == "25" && !LocalDefines.sIsLogin) {
-                    TisDialog dialog = new TisDialog(mActivity).create().setMessage("请先登录!").show();
+                    TisDialog dialog = new TisDialog(mFragment.getActivity()).create().setMessage("请先登录!").show();
                     return;
                 }
 
                 boolean isSuccessOutCoin = kd.sp().getIsSuccessOutCoin();
                 if (isSuccessOutCoin) {
-                    TisDialog dialog = new TisDialog(mActivity).create().setMessage("设备没币,请移步到其他机器!!").show();
+                    TisDialog dialog = new TisDialog(mFragment.getActivity()).create().setMessage("设备没币,请移步到其他机器!!").show();
                     return;
                 }
 
-                if (mActivity.mIsSuccessOpenSerial) {
+                if (mFragment.mIsSuccessOpenSerial) {
                     kd.sp().bdCoinOuted();
                     kd.sp().bdCleanError();
                     if (LocalDefines.sIsLogin && mDataList.get(position).getIsMember()) {
-                        new TisDialog(mActivity).create().setMessage("需要会员才能购买!").show();
+                        new TisDialog(mFragment.getActivity()).create().setMessage("需要会员才能购买!").show();
                     }
 
                     switch (mDataList.get(position).getId()) {
                         case "-1":
-                            new TisEditDialog(mActivity).create().setEditType(InputType.TYPE_CLASS_NUMBER)
+                            new TisEditDialog(mFragment.getActivity()).create().setEditType(InputType.TYPE_CLASS_NUMBER)
                                     .setMessage("请输入购买金额")
                                     .setNegativeButton(new TisEditDialog.NegativeButtonListener() {
                                         @Override
@@ -136,21 +137,21 @@ public class CoinTypeAdapter extends RecyclerView.Adapter<CoinTypeAdapter.ViewHo
                                 @Override
                                 public void onClick(View v, String input) {
                                     if (input != null && Integer.valueOf(input) > 0) {
-                                        mActivity.autoMathPackageListNoType(input);
+                                        mFragment.autoMathPackageListNoType(input);
                                     } else {
-                                        new TisDialog(mActivity).create().setMessage("金额不能为0或者空")
+                                        new TisDialog(mFragment.getActivity()).create().setMessage("金额不能为0或者空")
                                                 .show();
                                     }
                                 }
                             });
                             break;
                         default:
-                            mActivity.getPackageInfo(mDataList.get(position).getId(), position);
+                            mFragment.getPackageInfo(mDataList.get(position).getId(), position);
                             break;
 
                     }
                 } else {
-                    new TisDialog(mActivity).create().setMessage("设备故障,请联系管理员!").show();
+                    new TisDialog(mFragment.getActivity()).create().setMessage("设备故障,请联系管理员!").show();
                 }
 
                 mListener.OnClickListener(position);

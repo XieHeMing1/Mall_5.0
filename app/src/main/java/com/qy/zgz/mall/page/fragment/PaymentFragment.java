@@ -104,7 +104,7 @@ public class PaymentFragment extends Fragment {
     private void consumptionOrderList(String type){
         Log.i(TAG, " consumptionOrderList ");
         String token = SharePerferenceUtil.getInstance().getValue(Constance.user_accessToken, "").toString();
-//        Log.i(TAG, " consumptionOrderList token = " + token);
+        Log.i(TAG, " consumptionOrderList token = " + token);
 
         //TODO 这样判断是否可以
         if (!mIsShouldLoadData) {
@@ -130,11 +130,13 @@ public class PaymentFragment extends Fragment {
                 if(data.has("data") && data.get("data").equals("") || !data.has("list")) {
                     Log.i(TAG, "消费记录为空");
                     mTvNoRecord.setVisibility(View.VISIBLE);
+//                    mRvOrderList.setVisibility(View.GONE);
                     return;
+                }else {
+                    Log.i(TAG, "消费记录不为空");
+                    mDataList = GsonUtil.Companion.jsonToList(data.get("list").getAsJsonArray().toString(), MyOrder.class);
+                    initcConsumptionList();
                 }
-
-                mDataList = GsonUtil.Companion.jsonToList(data.get("list").getAsJsonArray().toString(), MyOrder.class);
-                initcConsumptionList();
             }
 
             @Override

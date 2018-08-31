@@ -681,16 +681,38 @@ public class SlotMachinesActivity extends BaseRxActivity {
         if (isRoteing) {
             return;
         }
+        cancelExit();
+        new TisGameExitDialog(this).create()
+                .setNegativeButtonListener(new TisGameExitDialog.NegativeButtonListener() {
+                    @Override
+                    public void onClick(View v) {
+                        SlotMachinesActivity.this.finish();
+                        // 定义出入场动画
+                        overridePendingTransition(R.anim.out_to_right_abit, R.anim.out_to_right);
+                    }
+                })
+                .setPositiveButtonListener(new TisGameExitDialog.PositiveButtonListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //清除会员登录信息
+                        SharePerferenceUtil.getInstance().setValue(Constance.member_Info,"");
+                        //清除商城会员登录accessToken
+                        SharePerferenceUtil.getInstance().setValue(Constance.user_accessToken,"");
+                        //清除商城会员登录shop_id
+                        SharePerferenceUtil.getInstance().setValue(Constance.shop_id,"");
 
-//        if (rlAeard.getVisibility() == View.VISIBLE) {
-//            rlAeard.setVisibility(View.GONE);
-//            return;
-//        }
-//
-//        if (money > 0) {
-//            exitHint();
-//            return;
-//        }
+                        SlotMachinesActivity.this.finish();
+                        // 定义出入场动画
+                        overridePendingTransition(R.anim.out_to_right_abit, R.anim.out_to_right);
+                    }
+                })
+                .setCancelClickListener(new TisGameExitDialog.CancelClickListener() {
+                    @Override
+                    public void handEvent() {
+                        startExit(45000);
+                    }
+                })
+                .show();
 //        super.onBackPressed();
     }
 
@@ -1276,7 +1298,7 @@ public class SlotMachinesActivity extends BaseRxActivity {
 
         }catch (Exception e){
             //防止没数据显示
-            isRoteing=true;
+//            isRoteing=true;
         }
     }
 

@@ -50,26 +50,16 @@
             android:background="@drawable/ic_bottom_lucky_lottery"
             android:foreground="?android:attr/selectableItemBackground" />
 
-        <com.zhy.autolayout.AutoRelativeLayout
+        <ImageView
             android:id="@+id/iv_new_game"
             android:layout_width="0px"
             android:layout_height="match_parent"
             android:layout_marginLeft="30px"
             android:layout_marginRight="30px"
             android:layout_weight="1"
-            android:background="@drawable/ic_bottom_main_page2"
+            android:background="@drawable/ic_bottom_discount_game"
             android:foreground="?android:attr/selectableItemBackground">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:paddingLeft="60px"
-                android:paddingTop="10px"
-                android:text="小游戏"
-                android:textColor="@color/color_white"
-                android:textSize="60px" />
-        </com.zhy.autolayout.AutoRelativeLayout>
+        </ImageView>
 
     </com.zhy.autolayout.AutoLinearLayout>
 
@@ -201,9 +191,8 @@
         <!--android:layout_weight="1"-->
         <!--android:paddingLeft="50px">-->
 
-
         <ImageView
-            android:id="@+id/iv_setting"
+            android:id="@+id/iv_high_setting"
             android:layout_width="130px"
             android:layout_height="130px"
             android:layout_centerVertical="true"
@@ -258,24 +247,15 @@
             android:textSize="60px"
             android:visibility="gone" />
 
-        <!--</com.zhy.autolayout.AutoLinearLayout>-->
-
-        <!--<com.zhy.autolayout.AutoLinearLayout-->
-        <!--android:layout_width="0px"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:layout_gravity="center|right"-->
-        <!--android:layout_weight="1"-->
-        <!--android:paddingRight="50px">-->
-
         <ImageView
             android:id="@+id/sdv_customor_enquiry"
-            android:layout_width="100px"
+            android:layout_width="150px"
             android:layout_height="match_parent"
             android:layout_marginBottom="20px"
             android:layout_marginRight="30px"
             android:layout_marginTop="20px"
             android:layout_toLeftOf="@+id/tv_shop_name"
-            android:background="@drawable/ic_customor_enquiry" />
+            android:background="@drawable/ic_wx_logo" />
 
         <TextView
             android:id="@+id/tv_shop_name"
@@ -287,6 +267,5 @@
             android:textColor="@color/color_black"
             android:textSize="70px" />
         <!--</com.zhy.autolayout.AutoLinearLayout>-->
-
     </com.zhy.autolayout.AutoRelativeLayout>
 </com.zhy.autolayout.AutoLinearLayout>

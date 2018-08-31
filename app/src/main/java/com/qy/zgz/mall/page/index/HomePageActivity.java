@@ -73,7 +73,7 @@ public class HomePageActivity extends BaseActivity {
     Button mBtnLogout;
     @BindView(R.id.rl_mall)
     RelativeLayout mRlMall;
-    @BindView(R.id.iv_setting)
+    @BindView(R.id.iv_high_setting)
     ImageView mIvSetting;
     @BindView(R.id.layout_bottom_tab)
     AutoLinearLayout mLlBottomTab;

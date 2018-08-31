@@ -1,9 +1,7 @@
 package com.qy.zgz.mall.page.fragment;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -48,7 +46,7 @@ public class VipCenterFragment extends BaseFragment {
 
     @Override
     public View getLayoutView(LayoutInflater inflater, @Nullable ViewGroup container) {
-        View view = inflater.inflate(R.layout.fragment_member_center, container, false);
+        View view = inflater.inflate(R.layout.fragment_menber_center, container, false);
         return view;
     }
 
@@ -157,8 +155,6 @@ public class VipCenterFragment extends BaseFragment {
                     String Bid = SharePerferenceUtil.getInstance().getValue(Constance.BranchID, "").toString();
                     String Vpn = SharePerferenceUtil.getInstance().getValue(Constance.Vpn, "").toString();
 
-//                    //显示登录信息
-                    mActivity.showLoginInfo();
 
                     //登录商城
 //                    userLogin(Wid,Bid,Vpn);
@@ -172,7 +168,8 @@ public class VipCenterFragment extends BaseFragment {
                     new TisDialog(mActivity).create()
                             .setMessage("登录成功!").show();
 
-
+//                    //显示登录信息
+                    mActivity.showLoginInfo();
                 } else {
                     mBaseFragmentHandler.postDelayed(new Runnable() {
                         @Override

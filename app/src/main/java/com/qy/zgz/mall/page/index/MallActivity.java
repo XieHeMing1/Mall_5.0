@@ -212,7 +212,7 @@ public class MallActivity extends BaseActivity {
     MyTextView mTvGameCoinCount;
     @BindView(R.id.btn_logout)
     Button mBtnLogout;
-    @BindView(R.id.iv_setting)
+    @BindView(R.id.iv_high_setting)
     ImageView mIvSetting;
     @BindView(R.id.tv_shop_name)
     TextView mTvShopName;
